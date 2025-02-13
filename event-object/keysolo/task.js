@@ -4,8 +4,24 @@ class Game {
     this.wordElement = container.querySelector('.word');
     this.winsElement = container.querySelector('.status__wins');
     this.lossElement = container.querySelector('.status__loss');
+    this.timeLeft = container.querySelector('span.status__time');
+
+    this.keyCodeToChar = {
+      "65":["A","ф"],"66":["B","и"],"67":["C","с"],"68":["D","в"],"69":["E","у"],"70":["F","а"],
+      "71":["G","п"],"72":["H","р"],"73":["I","ш"],"74":["J","о"],"75":["K","л"],"76":["L","д"],
+      "77":["M","ь"],"78":["N","т"],"79":["O","щ"],"80":["P","з"],"81":["Q","й"],"82":["R","к"],
+      "83":["S","ы"],"84":["T","е"],"85":["U","г"],"86":["V","м"],"87":["W","ц"],"88":["X","ч"],
+      "89":["Y","н"],"90":["Z","я"],"186":["Semicolon","ж"],"188":["Comma","б"],"219":["BracketLeft","х"],
+      "221":["BracketRight","ъ"],"222":["Quote","э"],"32":[" ", " "],"190":[".", "ю"],"220":["\\","ё"],
+    };
 
     this.reset();
+
+    // Initial game setting
+    this.resetGameStatistics();
+
+    // Time render for HTML
+    this.timeRender();
 
     this.registerEvents();
   }
@@ -16,24 +32,56 @@ class Game {
     this.lossElement.textContent = 0;
   }
 
-  registerEvents() {
-    /*
-      TODO:
-      Написать обработчик события, который откликается
-      на каждый введённый символ.
-      В случае правильного ввода символа вызываем this.success()
-      При неправильном вводе символа - this.fail();
-      DOM-элемент текущего символа находится в свойстве this.currentSymbol.
-     */
+  // Initial game setting
+  resetGameStatistics() {
+    this.wordArray = Array.from(this.wordElement.textContent);
+    this.wordIndex = 0;
+    this.wordLength = this.wordArray.length;
+    this.winsSymbols = 0;
+    this.lossSymbols = 0;
+
+    // Time calculation for input
+    this.timeLeft.textContent = this.wordLength;
+    this.futureTime = Date.now() / 1000 + this.wordLength;
   }
 
+  // Time render for HTML
+  timeRender() {
+    let that = this;
+    setInterval(function () {
+      that.timeLeft.textContent = (that.futureTime - Date.now() / 1000).toFixed(0);
+      that.timeLeft.textContent == 0 ? that.fail() : '';
+    }, 1000);
+  };
+
+  // Check input Symbols
+  checkSymbol(inputSymbolEN, inputSymbolRU, currentSymbol) {
+    if (inputSymbolEN === currentSymbol || inputSymbolRU === currentSymbol) {
+      ++this.winsSymbols;
+      ++this.wordIndex;
+      this.success();
+    } else {
+      ++this.lossSymbols;
+      this.fail();
+    };
+  };
+
+  // Trace KEYUP event
+  registerEvents() {
+    document.addEventListener('keyup', event => {
+      try {
+        this.checkSymbol(this.keyCodeToChar[event.keyCode][0].toLowerCase(),
+                        this.keyCodeToChar[event.keyCode][1].toLowerCase(),
+                        this.wordArray[this.wordIndex].toLowerCase());
+      } catch (TypeError) {
+      };
+    });
+  };
+
   success() {
-    if(this.currentSymbol.classList.contains("symbol_current")) this.currentSymbol.classList.remove("symbol_current");
     this.currentSymbol.classList.add('symbol_correct');
     this.currentSymbol = this.currentSymbol.nextElementSibling;
-
     if (this.currentSymbol !== null) {
-      this.currentSymbol.classList.add('symbol_current');
       return;
     }
 
@@ -56,6 +104,8 @@ class Game {
     const word = this.getWord();
 
     this.renderWord(word);
+    this.resetGameStatistics();
+    this.timeRender();
   }
 
   getWord() {
@@ -70,7 +120,11 @@ class Game {
         'popcorn',
         'cinema',
         'love',
-        'javascript'
+        'javascript',
+        'дом',
+        'яблоко',
+        'желудь',
+        'я люблю kitkat'
       ],
       index = Math.floor(Math.random() * words.length);
 
@@ -91,4 +145,3 @@ class Game {
 }
 
 new Game(document.getElementById('game'))
-
